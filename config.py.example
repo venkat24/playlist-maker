@@ -1,0 +1,18 @@
+#Spotify Client ID and Client Secret
+CLIENT_ID = ""
+CLIENT_SECRET = ""
+
+# This can be anything. Unless you're deploying this somewhere, it doesn't matter, leave it as it is
+REDIRECT_URL = "http://localhost:8888/callback"
+
+# Your Spotify username
+USERNAME = ""
+
+# Spotify playlist
+PLAYLIST_ID = ""
+
+# YouTube playlist
+YT_PLAYLIST_ID = ""
+
+# After enabling OAuth access in your Google API dashboard, download the client_secrets JSON and put the location here
+CLIENT_SECRETS_FILE = "client_secret.json"
