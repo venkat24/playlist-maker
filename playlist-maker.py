@@ -3,7 +3,6 @@ import re
 import sys
 import pprint
 
-import googleapiclient.discovery
 import spotipy
 import spotipy.util as util
 
