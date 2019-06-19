@@ -7,7 +7,7 @@ from googleapiclient.errors import HttpError
 from google_auth_oauthlib.flow import InstalledAppFlow
 
 class YoutubePlaylistClient:
-    def __init__(self, playlist_id):
+    def __init__(self):
         SCOPES = ['https://www.googleapis.com/auth/youtube']
         API_SERVICE_NAME = 'youtube'
         API_VERSION = 'v3'
@@ -16,16 +16,23 @@ class YoutubePlaylistClient:
         credentials = flow.run_console()
 
         self.client = build(API_SERVICE_NAME, API_VERSION, credentials = credentials)
-        self.playlist_id = playlist_id
 
+        # Cache to stored already fetched playlist members
+        self.playlist_cache = {}
         # Get existing playlist list
 
-    def add_video_to_playlist(self, video_id):
+    def add_video_to_playlist(self, playlist_id, video_id):
+        playlist_items = self.get_all_playlist_items(playlist_id)
+        playlist_video_ids = [item["snippet"]["resourceId"]["videoId"] for item in playlist_items]
+
+        if video_id in playlist_video_ids:
+            return False
+
         request = self.client.playlistItems().insert(
             part="snippet",
             body = {
                 "snippet" : {
-                    "playlistId" : YT_PLAYLIST_ID,
+                    "playlistId" : playlist_id,
                     "position" : 0,
                     "resourceId" : {
                         "kind" : "youtube#video",
@@ -35,10 +42,10 @@ class YoutubePlaylistClient:
             }
         )
 
-        response = request.execute()
-        return response
+        request.execute()
+        return True
 
-    def remove_video_from_playlist(self, video_id):
+    def remove_video_from_playlist(self, playlist_id, video_id):
         request = self.client.playlistItems().delete(
             id=video_id
         )
@@ -46,11 +53,11 @@ class YoutubePlaylistClient:
         response = request.execute()
         return response
 
-    def get_playlist_items(self, nextPageToken=None):
+    def get_playlist_items(self, playlist_id, nextPageToken=None):
         params = {
-            "part": "id",
+            "part": "id, snippet",
             "maxResults": 50,
-            "playlistId": self.playlist_id
+            "playlistId": playlist_id
         }
 
         if nextPageToken:
@@ -61,12 +68,17 @@ class YoutubePlaylistClient:
         response = request.execute()
         return response
 
-    def get_all_playlist_items(self):
+    def get_all_playlist_items(self, playlist_id):
+        if playlist_id in self.playlist_cache.keys():
+            return self.playlist_cache[playlist_id]
+
         items = []
-        response = self.get_playlist_items(None)
+        response = self.get_playlist_items(playlist_id, None)
         items.extend(response["items"])
         while "nextPageToken" in response.keys():
-            response = self.get_playlist_items(response["nextPageToken"])
+            response = self.get_playlist_items(playlist_id, response["nextPageToken"])
             items.extend(response["items"])
 
-        return [item["id"] for item in items]
+        self.playlist_cache[playlist_id] = items
+
+        return items

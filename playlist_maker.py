@@ -49,27 +49,27 @@ def add_to_youtube(urls):
     youtube_urls = []
     for url in urls:
         if "youtube" in url and "watch" in url:
-            new_url = url.split("?v=")[1]
+            new_url = url.split("?v=")[1].split("&")[0]
             youtube_urls.append(new_url)
 
-    youtube_client = YoutubePlaylistClient(YT_PLAYLIST_ID)
+        if "youtu.be" in url:
+            new_url = url.split("youtu.be/")[1].split("?")[0]
+            youtube_urls.append(new_url)
 
-    print("Clearing existing playlist..")
-    video_ids = youtube_client.get_all_playlist_items()
-    for video in video_ids:
-        youtube_client.remove_video_from_playlist(video)
-    print("Cleared existing playlist")
-
+    youtube_client = YoutubePlaylistClient()
     print(f'Found {len(youtube_urls)} YouTube links. Uploading to playlist now..')
 
     counter = 0
     for url in youtube_urls:
         try:
-            youtube_client.add_video_to_playlist(url)
             counter += 1
-            print(f'Uploaded video {counter} of {len(youtube_urls)}..')
+            added = youtube_client.add_video_to_playlist(YT_PLAYLIST_ID, url)
+            if added:
+                print(f'Video {counter} of {len(youtube_urls)} uploaded..')
+            else:
+                print(f'Video {counter} of {len(youtube_urls)} already exists, skipping..')
         except Exception as e:
-            print(f'Video {url} FAILED due to {e}. Continuing..')
+            print(f'Video {counter} [{url}] FAILED due to {e}. Continuing..')
 
     print("Uploaded tracks successfully to YouTube!")
 
