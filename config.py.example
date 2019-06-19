@@ -8,8 +8,9 @@ REDIRECT_URL = "http://localhost:8888/callback"
 # Your Spotify username
 USERNAME = ""
 
-# Spotify playlist
+# Spotify playlist and album playlist
 PLAYLIST_ID = ""
+ALBUM_PLAYLIST_ID = ""
 
 # YouTube playlist
 YT_PLAYLIST_ID = ""
