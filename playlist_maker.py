@@ -3,7 +3,6 @@ import re
 import sys
 import pprint
 
-from utils import *
 from config import *
 from youtube_client import YoutubePlaylistClient
 from spotify_client import SpotifyPlaylistClient
@@ -21,27 +20,20 @@ def add_to_spotify(urls):
             spotify_album_urls.append(new_url)
 
     print(f'Found {len(spotify_track_urls)} Spotify track links. Uploading..')
-
     spotify_client = SpotifyPlaylistClient()
 
     # Add standard tracks to the main playlist
-    spotify_client.replace_tracks_in_playlist(PLAYLIST_ID, spotify_track_urls)
+    spotify_client.add_tracks_to_playlist(PLAYLIST_ID, spotify_track_urls)
 
     # Add album tracks to the separate album playlist
-    all_album_tracks = []
+    album_track_urls = []
     for url in spotify_album_urls:
         album_tracks = spotify_client.get_tracks_in_album(url)
-        all_album_tracks.extend(album_tracks)
+        album_track_urls.extend(album_tracks)
 
-    print(f'Found {len(spotify_album_urls)} albums with {len(all_album_tracks)} tracks. Uploading..')
+    print(f'Found {len(spotify_album_urls)} albums with {len(album_track_urls)} tracks. Uploading..')
 
-    # Spotify has an upload limit of 100 tracks per request, so upload in chunks
-    for i, track_chunk in enumerate(chunks(all_album_tracks, 100)):
-        # Replace all tracks on the first chunk, append them on subsequent chunks
-        if i == 0:
-            spotify_client.replace_tracks_in_playlist(ALBUM_PLAYLIST_ID, track_chunk)
-        else:
-            spotify_client.add_tracks_to_playlist(ALBUM_PLAYLIST_ID, track_chunk)
+    spotify_client.add_tracks_to_playlist(ALBUM_PLAYLIST_ID, album_track_urls)
 
     print("Uploaded successfully to Spotify!")
 
